@@ -84,6 +84,8 @@ func (i IdentityProvidersDataSource) Read(ctx context.Context, request datasourc
 			return
 		}
 		metadata = string(validatedXMLData)
+	} else {
+		response.Diagnostics.Append(diag.NewWarningDiagnostic("No signing certificate provided", "No signing certificate was provided, the signature of the metadata file will not be verified."))
 	}
 
 	federationData := federationtypes.FederationMetadata{}
