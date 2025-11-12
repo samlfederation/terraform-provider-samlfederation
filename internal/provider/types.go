@@ -148,6 +148,9 @@ func (i *IdentityProvider) processLocalizedString(ctx context.Context, source []
 			Text:     basetypes.NewStringValue(displayNameElement.Value),
 		})
 	}
+	if destination == nil {
+		destination = []LocalizedString{}
+	}
 	return basetypes.NewListValueFrom(ctx, localizedStringType, destination)
 }
 
@@ -158,6 +161,9 @@ func (i *IdentityProvider) processLocalizedURL(ctx context.Context, source []fed
 			Language: basetypes.NewStringValue(displayNameElement.Lang),
 			URL:      basetypes.NewStringValue(displayNameElement.Value),
 		})
+	}
+	if destination == nil {
+		destination = []LocalizedURL{}
 	}
 	return basetypes.NewListValueFrom(ctx, localizedURLType, destination)
 }
@@ -201,6 +207,9 @@ func (i *IdentityProvider) applyLogos(ctx context.Context, entityDescriptor fede
 			Width:  basetypes.NewInt64Value(int64(logoData.Width)),
 			URL:    basetypes.NewStringValue(logoData.URL),
 		})
+	}
+	if results == nil {
+		results = []Logo{}
 	}
 	i.Logos, diags = basetypes.NewListValueFrom(ctx, logoType, results)
 	return diags
@@ -247,14 +256,17 @@ func (i *IdentityProvider) applyDiscovery(ctx context.Context, descriptor federa
 			))
 			continue
 		}
-		maskInt := int32(ipNet.Mask[len(ipNet.Mask)-1])
+		ones, _ := ipNet.Mask.Size()
 		hint := IPRange{
 			BaseIP: basetypes.NewStringValue(ipNet.IP.String()),
-			Mask:   basetypes.NewInt32Value(maskInt),
+			Mask:   basetypes.NewInt32Value(int32(ones)),
 		}
 		hintObj, d := basetypes.NewObjectValueFrom(ctx, ipRangeType.AttrTypes, hint)
 		diags = append(diags, d...)
 		ipHints = append(ipHints, hintObj)
+	}
+	if ipHints == nil {
+		ipHints = []types.Object{}
 	}
 	ipHintValue, d := basetypes.NewListValueFrom(ctx, ipRangeType, ipHints)
 	diags = append(diags, d...)
@@ -262,6 +274,9 @@ func (i *IdentityProvider) applyDiscovery(ctx context.Context, descriptor federa
 	var domainHints []string
 	for _, domainHint := range descriptor.IDPSSODescriptor.Extensions.DiscoHints.DomainHints {
 		domainHints = append(domainHints, domainHint)
+	}
+	if domainHints == nil {
+		domainHints = []string{}
 	}
 	domainHintValue, d := basetypes.NewListValueFrom(ctx, types.StringType, domainHints)
 	diags = append(diags, d...)
@@ -277,7 +292,7 @@ func (i *IdentityProvider) applyDiscovery(ctx context.Context, descriptor federa
 			continue
 		}
 		geoParts := strings.Split(parts[1], ",")
-		if len(geoParts) != 1 {
+		if len(geoParts) != 2 {
 			diags = append(diags, diag.NewWarningDiagnostic(
 				fmt.Sprintf("Cannot parse geolocation hint from discovery metadata: %s", geoHint),
 				"Expected format of geo:LATITUDE,LONGITUDE",
@@ -306,6 +321,9 @@ func (i *IdentityProvider) applyDiscovery(ctx context.Context, descriptor federa
 		})
 		diags = append(diags, d...)
 		geoHints = append(geoHints, hint)
+	}
+	if geoHints == nil {
+		geoHints = []types.Object{}
 	}
 	geoHintValue, d := basetypes.NewListValueFrom(ctx, geoLocationType, geoHints)
 	diags = append(diags, d...)
@@ -342,6 +360,9 @@ func (i *IdentityProvider) processServices(ctx context.Context, services []feder
 		svcs = append(svcs, svc)
 		diags = append(diags, d...)
 	}
+	if svcs == nil {
+		svcs = []attr.Value{}
+	}
 	result, d := basetypes.NewListValueFrom(ctx, serviceType, svcs)
 	diags = append(diags, d...)
 	return result, diags
@@ -364,8 +385,9 @@ var identityProviderType = types.ObjectType{
 }
 
 type IdentityProvidersDataSourceModel struct {
-	XML                types.String `tfsdk:"xml"`
-	URL                types.String `tfsdk:"url"`
-	SigningCertificate types.String `tfsdk:"signing_certificate"`
-	IdentityProviders  types.Map    `tfsdk:"identity_providers"`
+	XML                   types.String `tfsdk:"xml"`
+	URL                   types.String `tfsdk:"url"`
+	RegistrationAuthority types.String `tfsdk:"registration_authority"`
+	SigningCertificate    types.String `tfsdk:"signing_certificate"`
+	IdentityProviders     types.Map    `tfsdk:"identity_providers"`
 }

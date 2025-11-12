@@ -158,7 +158,9 @@ func (i MetadataDataSource) Read(ctx context.Context, request datasource.ReadReq
 			))
 			return
 		}
-		validatedXMLData, err := xml.Marshal(validated)
+		validatedDoc := etree.NewDocument()
+		validatedDoc.SetRoot(validated)
+		str, err := doc.WriteToString()
 		if err != nil {
 			response.Diagnostics.Append(diag.NewAttributeErrorDiagnostic(
 				sourcePath,
@@ -167,7 +169,7 @@ func (i MetadataDataSource) Read(ctx context.Context, request datasource.ReadReq
 			))
 			return
 		}
-		metadata = string(validatedXMLData)
+		metadata = str
 	} else {
 		response.Diagnostics.Append(diag.NewWarningDiagnostic(
 			"No signing certificate provided",
@@ -185,6 +187,7 @@ func (i MetadataDataSource) Read(ctx context.Context, request datasource.ReadReq
 		return
 	}
 	identityProviders := map[string]IdentityProvider{}
+	expectedAuthority := model.RegistrationAuthority.ValueString()
 
 	for _, entityDescriptor := range federationData.EntityDescriptors {
 		if len(entityDescriptor.IDPSSODescriptor.SingleSignOnServices) == 0 {
@@ -192,6 +195,9 @@ func (i MetadataDataSource) Read(ctx context.Context, request datasource.ReadReq
 		}
 
 		if entityDescriptor.EntityID == "" {
+			continue
+		}
+		if expectedAuthority != "" && entityDescriptor.Extensions.RegistrationInfo.RegistrationAuthority != expectedAuthority {
 			continue
 		}
 		entry := IdentityProvider{
@@ -248,6 +254,10 @@ func (i *MetadataDataSource) Schema(_ context.Context, _ datasource.SchemaReques
 			},
 			urlPath.String(): schema.StringAttribute{
 				MarkdownDescription: "SAML federation metadata URL. The provider will fetch the metadata from this URL.",
+				Optional:            true,
+			},
+			registrationAuthorityPath.String(): schema.StringAttribute{
+				MarkdownDescription: "Only return identity providers by this registration authority.",
 				Optional:            true,
 			},
 			signingCertificatePath.String(): schema.StringAttribute{

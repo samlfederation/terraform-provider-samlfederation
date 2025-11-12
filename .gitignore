@@ -4,4 +4,7 @@ tofu
 .terraform.lock.hcl
 .terraform.tfstate
 terraform.tfstate
+terraform.tfstate.backup
 .terraform
+aconet-interfed.xml
+aconet-metadata-signing.crt

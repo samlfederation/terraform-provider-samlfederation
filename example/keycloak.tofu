@@ -51,17 +51,16 @@ resource "keycloak_saml_identity_provider" "eduid" {
   realm    = data.keycloak_realm.realm.id
   for_each = data.samlfederation_metadata.eduID.identity_providers
 
-  alias                      = each.key
-  display_name               = each.value["display_name"]
+  alias                      = replace(replace(each.key, ":", "_"), "/", "_")
+  display_name               = jsonencode({
+    "name": {for name in each.value.display_names : name.language => name.text},
+  })
   entity_id                  = each.key
-  single_sign_on_service_url = each.value["sso_service_url"]
-  single_logout_service_url  = each.value["sso_logout_service_url"]
+  single_sign_on_service_url = each.value.single_sign_on_services[0].location
+  single_logout_service_url  = length(each.value.single_logout_services) > 0?each.value.single_logout_services[0].location:null
 
-  backchannel_supported      = each.value["backchannel_supported"]
-  post_binding_response      = each.value["post_binding_response"]
-  post_binding_logout        = each.value["post_binding_logout"]
-  post_binding_authn_request = each.value["post_binding_authn_request"]
-  want_assertions_signed     = each.value["want_assertions_signed"]
-  want_assertions_encrypted  = each.value["want_assertions_encrypted"]
-  validate_signature         = each.value["validate_signature"]
+  backchannel_supported      = length(each.value.single_logout_services) > 0
+  post_binding_response      = each.value.single_sign_on_services[0].binding == "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+  post_binding_logout        = length(each.value.single_logout_services) > 0?each.value.single_logout_services[0].binding == "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST":false
+  post_binding_authn_request = each.value.single_sign_on_services[0].binding == "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
 }
