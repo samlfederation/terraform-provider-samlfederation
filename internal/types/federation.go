@@ -1,7 +1,7 @@
 package types
 
 type FederationMetadata struct {
-	EntityDescriptors []FederationEntityDescriptor `xml:"EntityDescriptors>EntityDescriptor"`
+	EntityDescriptors []FederationEntityDescriptor `xml:"EntityDescriptor"`
 }
 
 type FederationEntityDescriptor struct {
@@ -21,11 +21,13 @@ type FederationRegistrationInfo struct {
 type FederationIDPSSODescriptor struct {
 	Extensions           FederationIDPSSODescriptorExtensions `xml:"Extensions"`
 	KeyDescriptors       []FederationKeyDescriptor            `xml:"KeyDescriptor"`
-	SingleSignOnServices []FederationSingleSignOnService      `xml:"SingleSignOnService"`
+	SingleSignOnServices []FederationService                  `xml:"SingleSignOnService"`
+	SingleLogoutServices []FederationService                  `xml:"SingleLogoutService"`
 }
 
 type FederationIDPSSODescriptorExtensions struct {
-	UIInfo FederationUIInfo `xml:"md:UIInfo"`
+	UIInfo     FederationUIInfo     `xml:"mdui:UIInfo"`
+	DiscoHints FederationDiscoHints `xml:"mdui:DiscoHints"`
 }
 
 type FederationUIInfo struct {
@@ -61,7 +63,13 @@ type FederationX509Data struct {
 	X509Certificate string `xml:"ds:X509Certificate"`
 }
 
-type FederationSingleSignOnService struct {
+type FederationService struct {
 	Binding  string `xml:"Binding,attr"`
 	Location string `xml:"Location,attr"`
+}
+
+type FederationDiscoHints struct {
+	IPHints          []string `xml:"mdui:IPHint"`
+	DomainHints      []string `xml:"mdui:DomainHint"`
+	GeloocationHints []string `xml:"mdui:GeolocationHint"`
 }

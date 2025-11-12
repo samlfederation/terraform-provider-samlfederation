@@ -2,7 +2,6 @@ package provider
 
 import (
 	"context"
-	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
@@ -10,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 var _ provider.Provider = &SAMLFederationProvider{}
@@ -34,34 +32,34 @@ type SAMLFederationProvider struct {
 type ScaffoldingProviderModel struct {
 }
 
-func (p *SAMLFederationProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
+func (p *SAMLFederationProvider) Metadata(_ context.Context, _ provider.MetadataRequest, resp *provider.MetadataResponse) {
 	resp.TypeName = "samlfederation"
 	resp.Version = p.version
 }
 
-func (p *SAMLFederationProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
+func (p *SAMLFederationProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{},
 	}
 }
 
-func (p *SAMLFederationProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+func (p *SAMLFederationProvider) Configure(_ context.Context, _ provider.ConfigureRequest, _ *provider.ConfigureResponse) {
 }
 
-func (p *SAMLFederationProvider) Resources(ctx context.Context) []func() resource.Resource {
+func (p *SAMLFederationProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{}
 }
 
-func (p *SAMLFederationProvider) EphemeralResources(ctx context.Context) []func() ephemeral.EphemeralResource {
+func (p *SAMLFederationProvider) EphemeralResources(_ context.Context) []func() ephemeral.EphemeralResource {
 	return []func() ephemeral.EphemeralResource{}
 }
 
-func (p *SAMLFederationProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
+func (p *SAMLFederationProvider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
-		NewIdentityProvidersDataSource,
+		NewMetadataDataSource,
 	}
 }
 
-func (p *SAMLFederationProvider) Functions(ctx context.Context) []func() function.Function {
+func (p *SAMLFederationProvider) Functions(_ context.Context) []func() function.Function {
 	return []func() function.Function{}
 }
