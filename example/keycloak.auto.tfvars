@@ -1,0 +1,5 @@
+keycloak_url       = "http://localhost:8080"
+keycloak_realm     = "master"
+keycloak_client_id = "admin-cli"
+keycloak_username  = "admin"
+keycloak_password  = "admin"
